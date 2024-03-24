@@ -1,5 +1,9 @@
 [YouTube Data Harvesting and Warehousing](https://github.com/gopinathvenkatesan01/Youtube-Data-harvesting)
 
+<p align="center">
+  <img src="https://github.com/gopinathvenkatesan01/Youtube-Data-harvesting/assets/162252390/dad37f56-88c1-4d1d-9515-87e566681932" alt="Project WorkFlow" width="690" height="390">
+ </p>
+
 **Introduction**
 
 YouTube Data Harvesting and Warehousing is a project aimed at developing a user-friendly Streamlit application that leverages the power of the Google API to extract valuable information from YouTube channels. The extracted data is then stored in a MongoDB database, subsequently migrated to a SQL data warehouse, and made accessible for analysis and exploration within the Streamlit app.
