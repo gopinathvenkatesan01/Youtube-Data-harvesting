@@ -1,0 +1,7 @@
+google-api-python-client == 2.123.0
+streamlit == 1.32.2
+streamlit-option-menu == 0.3.12
+pymongo == 4.6.2
+pandas == 2.2.1
+psycopg2 == 2.9.9
+millify == 0.1.1

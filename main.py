@@ -774,7 +774,7 @@ def main():
         select_box = option_menu(
             menu_title="YouTube Analytics",
             options=["YouTube Data Retrival", "Push Data to MongoDB", "Migration Of Data","SQL Queries"],
-            icons=["house","cloud-upload","share","clipboard-data"],
+            icons=["youtube","cloud-upload","database-fill-check","clipboard-data"],
             menu_icon="bar-chart-fill",
             default_index=0,
             )
