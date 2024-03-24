@@ -4,3 +4,4 @@ Youtube Data harvesting.code-workspace
 __pycache__/data_metrics.cpython-312.pyc
 __pycache__/data_dashboard.cpython-312.pyc
 test.ipynb
+/main/__pycache__
