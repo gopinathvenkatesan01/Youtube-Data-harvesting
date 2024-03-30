@@ -27,6 +27,7 @@ def channel_metrics(_myYoutube,channel_id):
         }
         
     return data   
+
 @st.cache_data
 def comment_data(_myYoutube,vid_lis):
     youtube = _myYoutube
@@ -74,6 +75,7 @@ def comment_data(_myYoutube,vid_lis):
                 pass
 
     return comments 
+
 @st.cache_data
 def process_comment(comment_df):
     cdf_df = comment_df['Comments'].to_frame()

@@ -4,7 +4,6 @@ from millify import millify
 
 from data_metrics import process_comment
 
-
 def yt_dash_board(channel_name,channel_info,video_df,comment_dt):
     comment_df= pd.DataFrame(comment_dt)
     comment_df1 = process_comment(comment_df)
@@ -50,35 +49,40 @@ def yt_dash_board(channel_name,channel_info,video_df,comment_dt):
     #------------------------------------Video data ---------------------------------------------
     video_df = video_df.head(50)
     all_vid_list = video_df['Video_Name'].to_list()
+    session_state = st.session_state
+    if 'vid_name' not in session_state:
+        session_state.vid_name = None
     with scol3:
         vid_names = all_vid_list
-        vid_name = st.selectbox(" :orange[Choose Your Video Name]",vid_names)
-        selected_vid = video_df.loc[video_df['Video_Name'] == vid_name, 'Video_Id'].to_list()[0]
-        selected_vid_data = video_df.loc[video_df['Video_Id'] == selected_vid ,['View_Count','Like_Count','Comment_Count']]
-        vid_views = millify(selected_vid_data['View_Count'].to_list()[0],precision=2)
-        vid_likes = millify(selected_vid_data['Like_Count'].to_list()[0],precision=2)
-        vid_com = millify(selected_vid_data['Comment_Count'].to_list()[0],precision=2)
-        stitl1, stitl2,stitl3 = st.columns([3, 3,3])
-        with stitl1:
-            st.markdown("<h4 style='text-align: center; color: orange;'>No Of Comments</h4>", unsafe_allow_html=True)
-            st.markdown(f"""<div style='text-align: center;'>
-                                <h5>{vid_com}</h5>
-                            </div>""", unsafe_allow_html=True)
-        with stitl2:
-            st.markdown("<h4 style='text-align: center; color: orange;'>No Of Views</h4>", unsafe_allow_html=True)
-            st.markdown(f"""<div style='text-align: center;'>
-                                <h5>{vid_views}</h5>
-                            </div>""", unsafe_allow_html=True)
-        with stitl3:
-            st.markdown("<h4 style='text-align: center; color: orange;'>Likes</h4>", unsafe_allow_html=True)
-            st.markdown(f"""<div style='text-align: center;'>
-                                <h5>{vid_likes}</h5>
-                            </div>""", unsafe_allow_html=True)  
-        
-        selected_com = comment_df1.loc[comment_df1['Video_id'] == selected_vid, ['Comments','Replies']].reset_index(drop=True) ## df
-        selected_com = selected_com.set_index('Comments')
-        st.dataframe(selected_com.style.set_properties(**{'max-height': '500px', 'overflow-y': 'scroll'}), width=1200, height=198)
-        #st.info("Mongodb Db name, collection name displayed here") 
+        vid_name = st.selectbox(" :orange[Choose Your Video Name]", vid_names)
+        if vid_name:
+            session_state.vid_name = vid_name
+            selected_vid = video_df.loc[video_df['Video_Name'] == vid_name, 'Video_Id'].to_list()[0]
+            selected_vid_data = video_df.loc[video_df['Video_Id'] == selected_vid ,['View_Count','Like_Count','Comment_Count']]
+            vid_views = millify(selected_vid_data['View_Count'].to_list()[0],precision=2)
+            vid_likes = millify(selected_vid_data['Like_Count'].to_list()[0],precision=2)       
+            vid_com = millify(selected_vid_data['Comment_Count'].to_list()[0],precision=2)
+            stitl1, stitl2,stitl3 = st.columns([3, 3,3])
+            with stitl1:
+                st.markdown("<h4 style='text-align: center; color: orange;'>No Of Comments</h4>", unsafe_allow_html=True)
+                st.markdown(f"""<div style='text-align: center;'>
+                                    <h5>{vid_com}</h5>
+                                </div>""", unsafe_allow_html=True)
+            with stitl2:
+                st.markdown("<h4 style='text-align: center; color: orange;'>No Of Views</h4>", unsafe_allow_html=True)
+                st.markdown(f"""<div style='text-align: center;'>
+                                    <h5>{vid_views}</h5>
+                                </div>""", unsafe_allow_html=True)
+            with stitl3:
+                st.markdown("<h4 style='text-align: center; color: orange;'>Likes</h4>", unsafe_allow_html=True)
+                st.markdown(f"""<div style='text-align: center;'>
+                                    <h5>{vid_likes}</h5>
+                                </div>""", unsafe_allow_html=True)  
+
+            selected_com = comment_df1.loc[comment_df1['Video_id'] == selected_vid, ['Comments','Replies']].reset_index(drop=True) ## df
+            selected_com = selected_com.set_index('Comments')
+            selected_com.reset_index(inplace=True)
+            st.dataframe(selected_com.style.set_properties(**{'max-height': '500px', 'overflow-y': 'scroll'}), width=1200, height=198)
     st.markdown('<hr>', unsafe_allow_html=True)    
     
     return channel_name

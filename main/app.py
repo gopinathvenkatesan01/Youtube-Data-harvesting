@@ -202,16 +202,14 @@ class Mongo:
             for mt in matching_keys:
                 comment_key=[]
                 comment_data=[]
-                comment_key = Mongo.find_comment_keys_by_keyword(data=doc[mt]['Comments'], keyword='Comment_Id_')
-                comment_data.append(doc[mt]['Comments'])
                 data.append(doc[mt])
-                for comment in comment_data:
-                    if len(comment_key) > 0:
-                        for i in comment_key:
-                            comments.append(comment[i])
-                # for comment in doc[mt]['Comments']:
-                #     for cmk in range(0,len(comment_key)):
-                #         comment_data.append[comment[cmk]]
+                if 'Comments' in doc[mt]: 
+                    comment_key = Mongo.find_comment_keys_by_keyword(data=doc[mt]['Comments'], keyword='Comment_Id_')
+                    comment_data.append(doc[mt]['Comments'])
+                    for comment in comment_data:
+                        if len(comment_key) > 0:
+                            for i in comment_key:
+                                comments.append(comment[i])
 
 
         # Convert list of dictionaries to DataFrame
