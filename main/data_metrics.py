@@ -70,9 +70,9 @@ def comment_data(_myYoutube,vid_lis):
                 video_comments.append({"Comments":comment,"Replies": repl})
             comments.append({"Channel_id":ch_id,"Video_id": vids,"Video_title":vid_title,"Comments":video_comments})
 
-        except HTTPError as e:
-            if e.resp.status == 403:
-                pass
+        except:
+            pass
+        
 
     return comments 
 
