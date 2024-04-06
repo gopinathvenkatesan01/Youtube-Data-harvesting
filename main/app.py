@@ -150,22 +150,26 @@ class Mongo:
         return df  
     
     def playlist(database,channelname):
-        mongo_client =Mongo.get_mongo_client()
-        collection = mongo_client[database]
-        record =collection[channelname]
-        data=[]
-        new_columns={
-            'Playlist_Id':'playlist_id',
-            'Playlist_Name':'playlist_name',
-            'Channel_Id':'channel_id',
-            'Upload_Id':'upload_id'
-        }
-        for i in record.find({}, {'_id': 0, 'PlayList': 1}):
-            data.extend(i['PlayList'])
-        df = pd.DataFrame(data)  
-        df.rename(columns=new_columns,inplace=True)
-        df = df[['playlist_id', 'playlist_name', 'channel_id', 'upload_id']]
-        return df
+        try:
+            mongo_client =Mongo.get_mongo_client()
+            collection = mongo_client[database]
+            record =collection[channelname]
+            data=[]
+            new_columns={
+                'Playlist_Id':'playlist_id',
+                'Playlist_Name':'playlist_name',
+                'Channel_Id':'channel_id',
+                'Upload_Id':'upload_id'
+            }
+            for i in record.find({}, {'_id': 0, 'PlayList': 1}):
+                data.extend(i['PlayList'])
+            df = pd.DataFrame(data)  
+            df.rename(columns=new_columns,inplace=True)
+            df = df[['playlist_id', 'playlist_name', 'channel_id', 'upload_id']]
+            return df
+        except:
+            pass
+    
     
     def find_keys_by_keyword(data, keyword):
         matching_keys = []
@@ -251,7 +255,8 @@ class Mongo:
                                                 'playlist_id', 'tags', 'published_date', 'published_time', 'view_count', 
                                                 'like_count', 'favourite_count', 'comment_count', 'duration', 'thumbnail', 
                                                 'caption_status']]
-        cdf =cdf[['comment_id', 'comment_text', 'comment_author', 
+        if not cdf.empty:
+            cdf =cdf[['comment_id', 'comment_text', 'comment_author', 
                                                 'comment_published_date','playlist_id','video_id']]
         # print(cdf)
         return df,cdf
@@ -352,18 +357,22 @@ class Sql:
         video,comment = Mongo.get_video_and_comments(mdb_collection_name, option)            
         connection = Sql.psql_client()
         cursor = connection.cursor()
-        cursor.executemany(f"""insert into channel(channel_id, channel_name, subscription_count,
+        if channel is not None:
+            cursor.executemany(f"""insert into channel(channel_id, channel_name, subscription_count,
                                 channel_views, channel_description, playlist_id, country) 
                                 values(%s,%s,%s,%s,%s,%s,%s)""", channel.values.tolist())
-        cursor.executemany(f"""insert into playlist(playlist_id, playlist_name, channel_id, 
+        if playlist is not None:    
+            cursor.executemany(f"""insert into playlist(playlist_id, playlist_name, channel_id, 
                                 upload_id) 
                                 values(%s,%s,%s,%s)""", playlist.values.tolist())
-        cursor.executemany(f"""insert into video(video_id, video_name, video_description, 
+        if video is not None:
+            cursor.executemany(f"""insert into video(video_id, video_name, video_description, 
                                 playlist_id, tags, published_date, published_time, view_count, 
                                 like_count, favourite_count, comment_count, duration, thumbnail, 
                                 caption_status) 
                                 values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",video.values.tolist())
-        cursor.executemany(f"""insert into comment(comment_id, comment_text, comment_author, 
+        if comment is not None:
+            cursor.executemany(f"""insert into comment(comment_id, comment_text, comment_author, 
                                 comment_published_date,playlist_id,video_id) 
                                 values(%s,%s,%s,%s,%s,%s)""", comment.values.tolist())
         connection.commit()
@@ -725,8 +734,8 @@ def video(myYoutube, video_id, play_list_id):
 
             data['Comments'] = comments_data
 
-    if data['Tags'] == []:
-        del data['Tags']
+    # if data['Tags'] == []:
+    #     del data['Tags']
 
     return data
 
@@ -761,6 +770,9 @@ def comment_by_video_id(myYoutube, video_id,play_list_id):
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 
+class dashboard:
+    def build_dashboard_data(channel_info, channel_name,comment_dt,video_df):
+        yt_dash_board(channel_name=channel_name,channel_info=channel_info,comment_dt=comment_dt,video_df=video_df)
 
 def main():
     st.set_page_config(page_title="YouTube Channel Data Harvesting And Warehousing", layout='wide',
@@ -780,36 +792,41 @@ def main():
     # "Choose Function",
     # ("YouTube Data Retrival", "Push Data to MongoDB", "Migration Of Data","SQL Queries"))
      
-    if select_box =='YouTube Data Retrival':
-       col1, col2 = st.columns([4,8])
-       with col1:
-           channel_id = st.text_input("Enter Channel ID:")
-       with col2:
-           api_key = st.text_input("Enter your YouTube Data API key:", type="password")
-       st.write("<br>",unsafe_allow_html=True)
-       st.write("<br>",unsafe_allow_html=True)
-       load = st.button("Fetch Channel Data",key="fetch_channel_data")
-       
-       if "load_state" not in st.session_state:
-           st.session_state.load_state =False
-   
-   #Channel Info
-       if load or st.session_state.load_state:
-            st.session_state.load_state =True
+    if select_box == 'YouTube Data Retrival':
+        
+        st.session_state.channel_name = None
+        st.session_state.comment_dt = None
+        st.session_state.video_df =None
+        st.session_state.channel_info =None
+        
+        col1, col2 = st.columns([4, 8])
+        with col1:
+            channel_id = st.text_input("Enter Channel ID:")
+        with col2:
+            api_key = st.text_input("Enter your YouTube Data API key:", type="password")
+        st.write("<br>", unsafe_allow_html=True)
+        st.write("<br>", unsafe_allow_html=True)
+        load = st.button("Fetch Channel Data", key="fetch_channel_data")
+    
+        if "load_state" not in st.session_state:
+            st.session_state.load_state = False
+    
+        # Channel Info
+        if load or st.session_state.load_state:
+            st.session_state.load_state = True
             if api_key:
                 with st.spinner('Loading Data...'):
                     st.toast('Retrieving Data from YouTube')
                     myYoutube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
                     channel_data = fetch_youtube_channel_data(myYoutube, channel_id)
                     if channel_data:
-                        channel_name = channel_data['Channel_Name']['Channel_Name']
+                        st.session_state.channel_name = channel_data['Channel_Name']['Channel_Name']
                         Mongo.drop_temp_data()
-                        Mongo.push_data(channel_name=channel_name, collection_name='temp', data=channel_data)
-                         # Metrics
-                        channel_info = channel_metrics(myYoutube,channel_id)
-                        video_df = pd.DataFrame(vid_data)
-                        comment_dt = comment_data(myYoutube,video_df['Video_Id'].head(50).to_list())
-                        yt_dash_board(channel_info=channel_info,channel_name=channel_name,comment_dt=comment_dt,video_df=video_df)
+                        Mongo.push_data(channel_name=st.session_state.channel_name, collection_name='temp', data=channel_data)
+                        # Metrics
+                        st.session_state.channel_info = channel_metrics(myYoutube, channel_id)
+                        st.session_state.video_df = pd.DataFrame(vid_data)
+                        st.session_state.comment_dt = comment_data(myYoutube, st.session_state.video_df['Video_Id'].head(50).to_list())
                         # st.write("Channel Data:")
                         # pprint(channel_data['Channel_Name'])
                         # st.json(channel_data['Channel_Name'])
@@ -817,10 +834,12 @@ def main():
                         st.toast('Retrieved data from YouTube successfully')
                         # st.balloons()
                     else:
-                        st.info("No data Found....")    
-                
+                        st.info("No data Found....")
             else:
                 st.error("Please enter your YouTube Data API key.")
+                
+        if st.session_state.channel_info is not None:
+            dashboard.build_dashboard_data(st.session_state.channel_info,st.session_state.channel_name,st.session_state.comment_dt,st.session_state.video_df)        
 
     elif select_box == 'Push Data to MongoDB':
         with st.spinner('Publishing data to MongoDB...'):

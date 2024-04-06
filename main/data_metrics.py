@@ -78,28 +78,28 @@ def comment_data(_myYoutube,vid_lis):
 
 @st.cache_data
 def process_comment(comment_df):
-    cdf_df = comment_df['Comments'].to_frame()
-    cdf_df1 = cdf_df.applymap(lambda x: [] if x == [] else x)  # convert empty list into []
     rldf = pd.DataFrame({})
-
-    for i, row in cdf_df1.iterrows():
-        comments = row['Comments']
-        if comments:
-            for comment_dict in comments:
+    if not comment_df.empty:
+        cdf_df = comment_df['Comments'].to_frame()
+        cdf_df1 = cdf_df.applymap(lambda x: [] if x == [] else x)  # convert empty list into []
+        for i, row in cdf_df1.iterrows():
+            comments = row['Comments']
+            if comments:
+                for comment_dict in comments:
+                    temp_df = comment_df.loc[[i]].copy()
+                    if 'Replies' in comment_dict and comment_dict['Replies']:
+                        temp_df.at[i, 'Replies'] = ', '.join(comment_dict['Replies'])
+                    else:
+                        temp_df.at[i, 'Replies'] = "No Replies"
+                    temp_df.at[i, 'Comments'] = comment_dict['Comments']
+                    rldf = pd.concat([rldf, temp_df], ignore_index=True)
+            else:
                 temp_df = comment_df.loc[[i]].copy()
-                if 'Replies' in comment_dict and comment_dict['Replies']:
-                    temp_df.at[i, 'Replies'] = ', '.join(comment_dict['Replies'])
-                else:
-                    temp_df.at[i, 'Replies'] = "No Replies"
-                temp_df.at[i, 'Comments'] = comment_dict['Comments']
+                temp_df.at[i, 'Replies'] = "No Replies"
+                temp_df.at[i, 'Comments'] = "No Comments"
                 rldf = pd.concat([rldf, temp_df], ignore_index=True)
-        else:
-            temp_df = comment_df.loc[[i]].copy()
-            temp_df.at[i, 'Replies'] = "No Replies"
-            temp_df.at[i, 'Comments'] = "No Comments"
-            rldf = pd.concat([rldf, temp_df], ignore_index=True)
 
 
-    
+
     return rldf
     
